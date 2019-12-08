@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/faizeev47/Meadowlark-Travel#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "express3-handlebars": "^0.5.2"
   }
 }
