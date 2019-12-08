@@ -3,11 +3,37 @@
   <head>
     <meta charset="utf-8">
     <title>Meadowlark Travel</title>
+    {{#if showTests}}
+      <link rel="stylesheet" href="/vendor/mocha.css">
+    {{/if}}
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+      crossorigin="anonymous"></script>
   </head>
   <body>
     <header>
       <img src="/img/logo.png" alt="Meadowlark Travel Logo">
     </header>
     {{{body}}}
+    {{#if showTests}}
+      <div id="mocha"></div>
+      <script src="/vendor/mocha.js" charset="utf-8"></script>
+      <script src="/vendor/chai.js" charset="utf-8"></script>
+      <script type="text/javascript">
+        mocha.ui('tdd');
+        var assert = chai.assert;
+      </script>
+      <script src="/qa/test-global.js" charset="utf-8"></script>
+      {{#if pageTestScript}}
+        <script src="{{pageTestScript}}" charset="utf-8"></script>
+        <script type="text/javascript">
+          Console.log("{{pageTestScript}}");
+        </script>
+      {{/if}}
+      <script type="text/javascript">
+        mocha.run();
+      </script>
+    {{/if}}
   </body>
 </html>
