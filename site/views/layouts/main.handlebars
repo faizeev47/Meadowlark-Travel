@@ -24,12 +24,9 @@
         mocha.ui('tdd');
         var assert = chai.assert;
       </script>
-      <script src="/qa/test-global.js" charset="utf-8"></script>
+      <script src="/qa/tests-global.js" charset="utf-8"></script>
       {{#if pageTestScript}}
         <script src="{{pageTestScript}}" charset="utf-8"></script>
-        <script type="text/javascript">
-          Console.log("{{pageTestScript}}");
-        </script>
       {{/if}}
       <script type="text/javascript">
         mocha.run();
