@@ -1,0 +1,22 @@
+{
+  "name": "meadowlark-travel",
+  "version": "1.0.0",
+  "description": "The Meadowlark Travel website",
+  "main": "meadowlark.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faizeev47/Meadowlark-Travel.git"
+  },
+  "author": "faizeev47",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/faizeev47/Meadowlark-Travel/issues"
+  },
+  "homepage": "https://github.com/faizeev47/Meadowlark-Travel#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
