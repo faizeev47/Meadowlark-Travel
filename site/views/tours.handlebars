@@ -1,7 +1,7 @@
 <h1>Tours:</h1>
 <ul>
   {{#each tours}}
-    {{! I'm in a new block...and context has changed}}
+    {{! A new block with a changed context}}
     <li>
       {{name}} - {{price}}
       {{#if ../currencies}}
@@ -16,5 +16,16 @@
 {{/unless}}
 
 {{#if specialsUrl}}
-
+  {{! A new block with an almost unchanged context}}
+  <p>Check out our <a href="{{specialsUrl}}">specials!</a></p>
+{{else}}
+  <p>Please check back often for specials.</p>
 {{/if}}
+
+<p>
+  {{#each currencies}}
+    <a href="#" class="currency">{{.}}</a>
+  {{else}}
+    Unfortunately, we currently only accept {{currency.name}}.
+  {{/each}}
+</p>

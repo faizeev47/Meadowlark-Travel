@@ -1,5 +1,6 @@
 var express = require('express');
 var fortune = require('./lib/fortune.js');
+var logger = require('morgan');
 
 var app = express();
 
@@ -11,6 +12,8 @@ app.set('view engine', 'handlebars');
 
 app.set('port', process.env.PORT || 8080);
 
+app.use(logger('dev'));
+
 app.use(function(req, res, next) {
   res.locals.showTests = app.get('env') !== 'production' &&
     req.query.test === '1';
@@ -18,6 +21,10 @@ app.use(function(req, res, next) {
 });
 
 app.use(express.static(__dirname + '/public'));
+
+app.get(function(req, res) {
+  console.log(req.url);
+});
 
 app.get('/', function(req, res) {
   res.render('home');
@@ -30,6 +37,20 @@ app.get('/about', function(req, res) {
   });
 });
 
+app.get('/tours', function(req, res) {
+  res.render('tours', {
+    currency: {
+      name: 'United States Dollar',
+      abbrev: 'USD'
+    },
+    tours: [
+      { name: 'Hood River', price: '$99.95' },
+      { name: 'Oregon Coast', price: '$159.95' }
+    ],
+    specialsUrl: '/january-specials',
+    currencies: [ 'USD', 'GBP', 'BTC' ]
+  });
+});
 
 app.get('/tours/hood-river', function(req, res) {
   res.render('tours/hood-river');
