@@ -1,4 +1,12 @@
+
 .code
 {
   font-family: monospace;
+}
+
+.weatherWidget
+{
+  padding: 20px;
+  border: 1px solid #bdc3c7;
+  border-radius: 10px;
 }

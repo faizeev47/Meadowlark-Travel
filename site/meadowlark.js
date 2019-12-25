@@ -1,5 +1,6 @@
 var express = require('express');
 var fortune = require('./lib/fortune.js');
+var weatherAPI = require('./lib/weather.js');
 var logger = require('morgan');
 
 var app = express();
@@ -19,14 +20,22 @@ app.use(logger('dev'));
 app.use(function(req, res, next) {
   res.locals.showTests = app.get('env') !== 'production' &&
     req.query.test === '1';
+  if (!res.locals.partials) {
+    res.locals.partials = {};
+  }
+  var weatherData = weatherAPI.getWeatherData();
+  res.locals.partials.weather = weatherData;
+
+  next();
+});
+
+// To inject partials into locals
+app.use(function(req, res, next) {
+
   next();
 });
 
 app.use(express.static(__dirname + '/public'));
-
-app.get(function(req, res) {
-  console.log(req.url);
-});
 
 app.get('/', function(req, res) {
   var today = new Date();
