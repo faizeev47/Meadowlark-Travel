@@ -1,0 +1,20 @@
+<h1>Tours:</h1>
+<ul>
+  {{#each tours}}
+    {{! I'm in a new block...and context has changed}}
+    <li>
+      {{name}} - {{price}}
+      {{#if ../currencies}}
+        ({{../../currency.abbrev}})
+      {{/if}}
+    </li>
+  {{/each}}
+</ul>
+
+{{#unless currencies}}
+  <p>All prices in {{currency.name}}</p>
+{{/unless}}
+
+{{#if specialsUrl}}
+
+{{/if}}
