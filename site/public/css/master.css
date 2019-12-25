@@ -10,3 +10,10 @@
   border: 1px solid #bdc3c7;
   border-radius: 10px;
 }
+
+#nurseryRhyme
+{
+  font-style: italic;
+  font-size: 30px;
+  padding: 20px;
+}
