@@ -1,0 +1,26 @@
+<form role="form" enctype="multipart/form-data"
+  action="/contest/vacation-photo/{year}/{month}" method="post">
+  <div class="form-group">
+    <label for="fieldName" class="col-sm-2">Name</label>
+    <div class="col-sm-4">
+      <input type="text" class="form-control" name="name" id="fieldName">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="fieldEmail" class="col-sm-2">Email</label>
+    <div class="col-sm-4">
+      <input type="email" class="form-control" name="email" id="fieldEmail" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="fieldPhoto" class="col-sm-2">Vacation Photo</label>
+    <div class="col-4">
+      <input type="file" class="form-control" accept="image/*" id="fieldPhoto" name="photo" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-4">
+      <button type="submit" class="btn btn-primary">Register</button>
+    </div>
+  </div>
+</form>

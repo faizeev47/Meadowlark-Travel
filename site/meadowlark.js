@@ -1,6 +1,8 @@
 var express = require('express');
 var logger = require('morgan');
 var bodyparser = require('body-parser');
+var formidable = require('formidable');
+
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
 
@@ -13,8 +15,6 @@ app.set('port', process.env.PORT || 8080);
 // set up handlebars view engine
 var handlebars = require('express3-handlebars').create({
     defaultLayout:'main',
-    partialsDir: __dirname + "/views/partials",
-    layoutsDir: __dirname + "/views/layouts",
     helpers: {
         section: function(name, options){
             if(!this._sections) this._sections = {};
@@ -118,7 +118,8 @@ app.get('/newsletter', function(req, res) {
 });
 
 app.get('/thank-you', function(req, res) {
-  res.render('thank-you');
+  console.log(req.query.message);
+  res.render('thank-you', { message: req.query.message });
 });
 
 app.post('/process', function(req, res) {
@@ -126,8 +127,29 @@ app.post('/process', function(req, res) {
     res.send({success: true});
   }
   else {
-    res.redirect(303, '/thank-you');
+    res.redirect(303, "/thank-you?message=You'll be getting mails from us now.");
   }
+});
+
+app.get('/contest/vacation-photo', function(req, res) {
+  var now = new Date();
+  res.render('contest/vacation-photo', {
+    year: now.getFullYear(), month: now.getMonth()
+  });
+});
+
+app.post('/contest/vacation-photo/:year/:month', function(req, res) {
+  var form = formidable.IncomingForm();
+  form.parse(req, function(err, fields, files) {
+    if (err) {
+      return res.redirect(303, '/error');
+    }
+    console.log('recieved fields: ');
+    console.log(fields);
+    console.log('recieved files: ');
+    console.log(files);
+    res.redirect(303, "/thank-you?message=We're honored that you participated!");
+  });
 });
 
 
