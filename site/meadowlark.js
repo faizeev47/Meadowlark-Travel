@@ -1,13 +1,20 @@
 var express = require('express');
+var logger = require('morgan');
+var bodyparser = require('body-parser');
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
-var logger = require('morgan');
 
 var app = express();
+
+app.disable('x-powered-by');
+
+app.set('port', process.env.PORT || 8080);
 
 // set up handlebars view engine
 var handlebars = require('express3-handlebars').create({
     defaultLayout:'main',
+    partialsDir: __dirname + "/views/partials",
+    layoutsDir: __dirname + "/views/layouts",
     helpers: {
         section: function(name, options){
             if(!this._sections) this._sections = {};
@@ -16,13 +23,13 @@ var handlebars = require('express3-handlebars').create({
         },
     }
 });
+
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
-app.disable('x-powered-by');
-
-app.set('port', process.env.PORT || 8080);
-
+app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
 app.use(logger('dev'));
 
 app.use(function(req, res, next) {
@@ -37,13 +44,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-// To inject partials into locals
-app.use(function(req, res, next) {
 
-  next();
-});
-
-app.use(express.static(__dirname + '/public'));
 
 app.get('/', function(req, res) {
   var today = new Date();
@@ -111,6 +112,19 @@ app.get('/data/nursery-rhyme', function(req, res) {
     noun: 'heck',
   });
 });
+
+app.get('/newsletter', function(req, res) {
+  res.render('newsletter', { csrf: 'CSRF token goes here' });
+});
+
+app.get('/thank-you', function(req, res) {
+  res.render('thank-you');
+});
+
+app.post('/process', function(req, res) {
+  console.log("Thank you, " + req.body.name + "!\nWe'll mail you at " + req.body.email);
+  res.redirect(303, '/thank-you');
+})
 
 
 // custom 404 page
