@@ -2,6 +2,7 @@ var express = require('express');
 var logger = require('morgan');
 var bodyparser = require('body-parser');
 var formidable = require('formidable');
+var jqpupload = require('jquery-file-upload-middleware');
 
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
@@ -42,6 +43,18 @@ app.use(function(req, res, next) {
   res.locals.partials.weather = weatherData;
 
   next();
+});
+
+app.use('/upload', function(req, res, next) {
+  var now = Date.now();
+  jqpupload.fileHandler({
+    uploadDir: function() {
+      return __dirname + '/public/uploads' + now;
+    },
+    uploadUrl: function() {
+      return '/uploads/' + now;
+    }
+  })(req, res, next);
 });
 
 
