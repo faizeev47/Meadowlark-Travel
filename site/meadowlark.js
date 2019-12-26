@@ -122,9 +122,13 @@ app.get('/thank-you', function(req, res) {
 });
 
 app.post('/process', function(req, res) {
-  console.log("Thank you, " + req.body.name + "!\nWe'll mail you at " + req.body.email);
-  res.redirect(303, '/thank-you');
-})
+  if (req.xhr || req.accepts('json,html')==='json') {
+    res.send({success: true});
+  }
+  else {
+    res.redirect(303, '/thank-you');
+  }
+});
 
 
 // custom 404 page
