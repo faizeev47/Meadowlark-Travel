@@ -1,7 +1,35 @@
+#bodyContainer
+{
+  background-color: #dcdde1;
+  border: 2px solid gray;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 16px;
+}
+
+nav
+{
+  min-width: 100%;
+  border: 1px solid gray;
+  border-radius: 5px;
+}
+
 header
 {
+  padding: 20px;
   text-align: center;
-  padding:20px;
+}
+
+body
+{
+  opacity: 0.8;
+  background-color: #b2bec3;
+}
+
+blockquote
+{
+  font-size: 30px !important;
+  font-style: italic;
 }
 
 .btn-file

@@ -105,14 +105,6 @@ app.get('/headers', function(req, res) {
   res.send(s + '\n' + JSON.stringify(req.headers));
 });
 
-
-app.get('/greeting', function(req, res) {
-  res.render('about', {
-    message: 'welcome',
-    style
-  })
-});
-
 app.get('/nursery-rhyme', function(req, res) {
   res.render('nursery-rhyme');
 });
