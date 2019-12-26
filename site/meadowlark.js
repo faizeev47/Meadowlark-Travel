@@ -6,6 +6,7 @@ var jqpupload = require('jquery-file-upload-middleware');
 
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
+var credentials = require('./credentials.js');
 
 var app = express();
 
@@ -30,20 +31,34 @@ app.set('view engine', 'handlebars');
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
+app.use(require('cookie-parser')(credentials.cookieSecret));
+app.use(require('express-session')({
+  resave: false,
+  saveUninitialized: true
+}));
 app.use(express.static(__dirname + '/public'));
 app.use(logger('dev'));
 
 app.use(function(req, res, next) {
   res.locals.showTests = app.get('env') !== 'production' &&
     req.query.test === '1';
+  next();
+});
+
+app.use(function(req, res, next) {
   if (!res.locals.partials) {
     res.locals.partials = {};
   }
   var weatherData = weatherAPI.getWeatherData();
   res.locals.partials.weather = weatherData;
-
   next();
 });
+
+app.use(function(req, res, next) {
+  res.locals.flash = req.session.flash;
+  delete req.session.flash;
+  next();
+})
 
 app.use('/upload', function(req, res, next) {
   var now = Date.now();
@@ -57,12 +72,19 @@ app.use('/upload', function(req, res, next) {
   })(req, res, next);
 });
 
-
-
 app.get('/', function(req, res) {
   var today = new Date();
+  var firstVisit = true;
+  if (!(req.cookies.visitedBefore)) {
+    firstVisit = true;
+    res.cookie('visitedBefore', true);
+  }
+  else {
+    firstVisit = false;
+  }
   res.render('home', {
-    today: today.getDate() + "/" + today.getMonth() + "/" + today.getFullYear()
+    today: today.getDate() + "/" + today.getMonth() + "/" + today.getFullYear(),
+    firstVisit: firstVisit
   });
 });
 
@@ -118,8 +140,37 @@ app.get('/data/nursery-rhyme', function(req, res) {
   });
 });
 
+app.get('/newsletter/archive', function(req, res) {
+  res.render('newsletter-archive', { flash: res.locals.flash });
+});
+
 app.get('/newsletter', function(req, res) {
   res.render('newsletter', { csrf: 'CSRF token goes here' });
+});
+
+app.post('/newsletter', function(req, res) {
+  var name = req.body.name || '', email = req.body.email || '';
+  if (!email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
+    if (req.xhr) {
+      return res.json({ error: 'Invalid email address.'});
+    }
+    req.session.flash = {
+      type: 'danger',
+      intro: 'Validation error!',
+      message: 'The email address you entered was not valid.'
+    };
+    return res.redirect(303, '/newsletter/archive');
+  }
+  if (req.xhr) {
+    return res.json({ success: true });
+  }
+  req.session.flash = {
+    type: 'success',
+    intro: 'Thank you!',
+    message: 'You have been signed up for the newsletter'
+  }
+  return res.redirect(303, '/newsletter/archive');
+
 });
 
 app.get('/thank-you', function(req, res) {
