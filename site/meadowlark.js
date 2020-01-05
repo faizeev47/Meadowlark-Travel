@@ -7,6 +7,7 @@ var jqpupload = require('jquery-file-upload-middleware');
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
 var credentials = require('./credentials.js');
+var cartValidation = require('./lib/cartValidation.js');
 
 var app = express();
 
@@ -60,6 +61,9 @@ app.use(function(req, res, next) {
   next();
 })
 
+app.use(cartValidation.checkWaivers);
+app.use(cartValidation.checkGuestAccounts)
+
 app.use('/upload', function(req, res, next) {
   var now = Date.now();
   jqpupload.fileHandler({
@@ -83,7 +87,7 @@ app.get('/', function(req, res) {
     firstVisit = false;
   }
   res.render('home', {
-    today: today.getDate() + "/" + today.getMonth() + "/" + today.getFullYear(),
+    today: today.getDate() + "/" + today.getMonth() + 1 + "/" + today.getFullYear(),
     firstVisit: firstVisit
   });
 });
