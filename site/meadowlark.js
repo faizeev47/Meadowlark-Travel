@@ -99,12 +99,12 @@ app.use('/upload', function(req, res, next) {
 
 app.get('/', function(req, res) {
   var today = new Date();
+  res.locals.inputs.fortune = fortune.getFortune();
   res.locals.inputs.today = today.getDate() + "/" + today.getMonth() + 1 + "/" + today.getFullYear();
   res.render('home', res.locals.inputs);
 });
 
 app.get('/about', function(req, res) {
-  res.locals.inputs.fortune = fortune.getFortune();
   res.locals.inputs.pageTestScript = '/qa/tests-about.js';
   res.render('about', res.locals.inputs);
 });
