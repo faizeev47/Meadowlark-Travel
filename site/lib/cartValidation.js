@@ -2,11 +2,10 @@ module.exports = {
   checkWaivers: function(req, res, next) {
     var cart = req.session.cart;
     if (!cart) {
-      next();
+      return next();
     }
-    if (cart.some(function(item) {
-      return item.product.requiresWaiver;
-    })) {
+    const waiverChecker = (item) => item.product.requiresWaiver != null;
+    if (cart.some(waiverChecker)) {
       if (!cart.warnings) {
         cart.warnings = [];
         cart.warnings.push('One or more of your selected tours' +
@@ -21,9 +20,8 @@ module.exports = {
     if (!cart) {
       return next();
     }
-    if (cart.some(function(item) {
-      return item.guests > item.product.maximumGuests;
-    })) {
+    const guestLimiter = (item) => item.guests > item.product.maximumGuests;
+    if (cart.some(guestLimiter)) {
       if (!cart.errors) {
         cart.errors = [];
         cart.errors.push('One or more of your selected tours ' +

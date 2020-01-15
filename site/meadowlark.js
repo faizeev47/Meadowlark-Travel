@@ -3,6 +3,7 @@ var logger = require('morgan');
 var bodyparser = require('body-parser');
 var formidable = require('formidable');
 var jqpupload = require('jquery-file-upload-middleware');
+var nodemailer = require('nodemailer');
 
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
@@ -10,6 +11,16 @@ var credentials = require('./credentials.js');
 var cartValidation = require('./lib/cartValidation.js');
 
 var app = express();
+
+var mailTransport = nodemailer.createTransport({
+  host: 'smtp.meadowlarktravel.com',
+  port: 465,
+  secure: false,
+  auth: {
+    user: 'username',
+    pass: 'password',
+  }
+});
 
 app.disable('x-powered-by');
 
@@ -56,8 +67,18 @@ app.use(function(req, res, next) {
 });
 
 app.use(function(req, res, next) {
-  res.locals.flash = req.session.flash;
+  res.locals.inputs = {};
+  if (!(req.cookies.visitedBefore)) {
+    res.locals.inputs.firstVisit = true;
+    res.cookie('visitedBefore', true);
+  }
+  else {
+    res.locals.inputs.firstVisit = false;
+  }
+  res.locals.inputs.flash = req.session.flash;
   delete req.session.flash;
+  res.locals.inputs.message = req.session.message;
+  delete req.session.message;
   next();
 })
 
@@ -78,40 +99,28 @@ app.use('/upload', function(req, res, next) {
 
 app.get('/', function(req, res) {
   var today = new Date();
-  var firstVisit = true;
-  if (!(req.cookies.visitedBefore)) {
-    firstVisit = true;
-    res.cookie('visitedBefore', true);
-  }
-  else {
-    firstVisit = false;
-  }
-  res.render('home', {
-    today: today.getDate() + "/" + today.getMonth() + 1 + "/" + today.getFullYear(),
-    firstVisit: firstVisit
-  });
+  res.locals.inputs.today = today.getDate() + "/" + today.getMonth() + 1 + "/" + today.getFullYear();
+  res.render('home', res.locals.inputs);
 });
 
 app.get('/about', function(req, res) {
-  res.render('about', {
-    fortune: fortune.getFortune(),
-    pageTestScript: '/qa/tests-about.js'
-  });
+  res.locals.inputs.fortune = fortune.getFortune();
+  res.locals.inputs.pageTestScript = '/qa/tests-about.js';
+  res.render('about', res.locals.inputs);
 });
 
 app.get('/tours', function(req, res) {
-  res.render('tours', {
-    currency: {
-      name: 'United States Dollar',
-      abbrev: 'USD'
-    },
-    tours: [
-      { name: 'Hood River', price: '$99.95' },
-      { name: 'Oregon Coast', price: '$159.95' }
-    ],
-    specialsUrl: '/january-specials',
-    currencies: [ 'USD', 'GBP', 'BTC' ]
-  });
+  res.locals.inputs.currency = {
+    name: 'United States Dollar',
+    abbrev: 'USD'
+  };
+  res.locals.inputs.tours = [
+    { name: 'Hood River', price: '$99.95' },
+    { name: 'Oregon Coast', price: '$159.95' }
+  ];
+  res.locals.inputs.specialsUrl = '/january-specials';
+  res.locals.inputs.currencies = [ 'USD', 'GBP', 'BTC' ];
+  res.render('tours', res.locals.inputs);
 });
 
 app.get('/tours/hood-river', function(req, res) {
@@ -145,57 +154,59 @@ app.get('/data/nursery-rhyme', function(req, res) {
 });
 
 app.get('/newsletter/archive', function(req, res) {
-  res.render('newsletter-archive', { flash: res.locals.flash });
+  res.render('newsletter-archive', res.locals.inputs);
 });
 
 app.get('/newsletter', function(req, res) {
-  res.render('newsletter', { csrf: 'CSRF token goes here' });
+  res.locals.inputs.csrf = 'CSRF token goes here!';
+  res.render('newsletter', res.locals.inputs);
 });
 
 app.post('/newsletter', function(req, res) {
   var name = req.body.name || '', email = req.body.email || '';
+  if (name == '' || email == '') {
+    req.session.flash = {
+      type: 'info',
+      intro: 'Validation error: ',
+      message: 'Please enter your name and email!'
+    };
+    return res.redirect(303, '/newsletter');
+  }
   if (!email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
-    if (req.xhr) {
-      return res.json({ error: 'Invalid email address.'});
-    }
     req.session.flash = {
       type: 'danger',
-      intro: 'Validation error!',
-      message: 'The email address you entered was not valid.'
+      intro: 'Validation error: ',
+      message: 'You have entered an invalid email address!'
     };
-    return res.redirect(303, '/newsletter/archive');
+    return res.redirect(303, '/newsletter');
   }
-  if (req.xhr) {
-    return res.json({ success: true });
-  }
+
+  mailTransport.sendMail({
+    from: '"MeadowlarkTravel" <info@meadowlarktravel.com>',
+    to: email,
+    subject: 'Newsletter Subscription at MeadowLark Travel!',
+    text: 'Thank you for subscribing to our newsletter. ' +
+          'To unsubscibe'
+  })
+
   req.session.flash = {
     type: 'success',
-    intro: 'Thank you!',
-    message: 'You have been signed up for the newsletter'
-  }
-  return res.redirect(303, '/newsletter/archive');
+    intro: 'Success: ',
+    message: 'You have made it!'
+  };
 
+  return res.redirect(303, '/newsletter/archive');
 });
 
 app.get('/thank-you', function(req, res) {
-  console.log(req.query.message);
-  res.render('thank-you', { message: req.query.message });
-});
-
-app.post('/process', function(req, res) {
-  if (req.xhr || req.accepts('json,html')==='json') {
-    res.send({success: true});
-  }
-  else {
-    res.redirect(303, "/thank-you?message=You'll be getting mails from us now.");
-  }
+  res.render('thank-you', res.locals.inputs);
 });
 
 app.get('/contest/vacation-photo', function(req, res) {
   var now = new Date();
-  res.render('contest/vacation-photo', {
-    year: now.getFullYear(), month: now.getMonth()
-  });
+  res.locals.inputs.year = now.getFullYear();
+  res.locals.inputs.month = now.getMonth();
+  res.render('contest/vacation-photo', res.locals.items);
 });
 
 app.post('/contest/vacation-photo/:year/:month', function(req, res) {
@@ -208,7 +219,8 @@ app.post('/contest/vacation-photo/:year/:month', function(req, res) {
     console.log(fields);
     console.log('recieved files: ');
     console.log(files);
-    res.redirect(303, "/thank-you?message=We're honored that you participated!");
+    req.session.message = "We're honored that you participated!";
+    res.redirect(303, "/thank-you");
   });
 });
 
@@ -226,5 +238,5 @@ app.use(function(err, req, res, next) {
 
 app.listen(app.get('port'), function() {
   console.log('Express started at http://localhost:' +
-    app.get('port') + ';press CTRL-C to terminate.');
+              app.get('port') + ';press CTRL-C to terminate.');
 });

@@ -4,7 +4,7 @@
   border: 2px solid gray;
   border-radius: 10px;
   padding: 10px;
-  margin: 16px;
+  margin: 10px;
 }
 
 nav
@@ -12,6 +12,8 @@ nav
   min-width: 100%;
   border: 1px solid gray;
   border-radius: 5px;
+  margin-top:10px;
+  margin-bottom: 20px;
 }
 
 header
@@ -58,6 +60,12 @@ blockquote
 {
   font-family: monospace;
   color: #8e44ad;
+}
+
+.cookie-alert
+{
+  margin-bottom: 0px;
+  padding-bottom: 0px; 
 }
 
 .weatherWidget
