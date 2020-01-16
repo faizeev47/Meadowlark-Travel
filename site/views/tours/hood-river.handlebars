@@ -1,3 +1,25 @@
+<a href="/tours" class="button route-back">
+  &#8592; Back to tours
+</a>
+<hr>
 <h1>Hood River Tour</h1>
-<a class="requestGroupRate"
-    href="/tours/request-group-rate">Request Group Rate.</a>
+<h4>
+  <span class="text-muted">price per booking: </span>
+  <span class="cash">$88.95</span>
+</h4>
+<form class="form-inline" action="/tours/hood-river" method="POST">
+  <input type="hidden" name="price" value="88.95">
+  <div class="input-group mb-2 mr-sm-2">
+    <div class="input-group-prepend">
+      <div class="input-group-text">Number of bookings: </div>
+    </div>
+    <input name="bookings" type="number" min="0" value="0" class="form-control">
+  </div>
+
+  <button type="submit" class="btn btn-primary mb-2">Add to cart</button>
+</form>
+<hr>
+<a class="button requestGroupRate"
+    href="/tours/request-group-rate">
+    Request Group Rate.
+</a>

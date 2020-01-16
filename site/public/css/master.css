@@ -1,10 +1,84 @@
-#bodyContainer
+@keyframes fadeIn {
+  0%
+  {
+    opacity: 0.1;
+  }
+
+  100%
+  {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0%
+  {
+    opacity: 1;
+  }
+
+  100%
+  {
+    opacity: 0.1;
+  }
+}
+
+@keyframes fadeOutToSixty {
+  0%
+  {
+    opacity: 1;
+  }
+
+  100%
+  {
+    opacity: 0.6;
+  }
+}
+
+*
 {
-  background-color: #dcdde1;
-  border: 2px solid gray;
-  border-radius: 10px;
+  font-family: 'Questrial';
+  opacity: 1;
+  animation-name: fadeIn;
+  animation-duration: 1.5s;
+}
+
+a
+{
+  opacity: 0.6;
+  transition: opacity 1s;
+  text-decoration: none;
+  animation-name: fadeOutToSixty;
+  animation-duration: 1s;
+}
+
+a:hover
+{
+  opacity: 1;
+  transition: opacity 1s;
+  text-decoration: none;
+}
+
+blockquote
+{
+  font-size: 30px;
+  text-align: center;
+  font-family: 'La Belle Aurore';
+}
+
+body
+{
+  background-color: #ecf0f1;
+}
+
+footer
+{
+  text-align: center;
   padding: 10px;
-  margin: 10px;
+}
+
+main
+{
+  padding: 20px;
 }
 
 nav
@@ -12,26 +86,25 @@ nav
   min-width: 100%;
   border: 1px solid gray;
   border-radius: 5px;
-  margin-top:10px;
+  align-items: center;
+}
+
+.button
+{
   margin-bottom: 20px;
+  border: 1px solid gray;
+  border-radius: 30px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding: 10px;
+  background-color: #34495e;
+  color: #bdc3c7;
 }
 
-header
+.button:hover
 {
-  padding: 20px;
-  text-align: center;
-}
-
-body
-{
-  opacity: 0.8;
-  background-color: #b2bec3;
-}
-
-blockquote
-{
-  font-size: 30px !important;
-  font-style: italic;
+  color: #bdc3c7;
+  text-decoration: none;
 }
 
 .btn-file
@@ -65,7 +138,28 @@ blockquote
 .cookie-alert
 {
   margin-bottom: 0px;
-  padding-bottom: 0px; 
+  padding-bottom: 0px;
+}
+
+.jumbotron
+{
+  background-color: #bdc3c7;
+}
+
+.nav
+{
+  align-items: center;
+}
+
+.tour-card-title
+{
+  font-weight: bolder;
+  color: #2980b9;
+}
+
+.tour-card-price
+{
+  color: #27ae60;
 }
 
 .weatherWidget
@@ -75,21 +169,20 @@ blockquote
   border-radius: 10px;
 }
 
+#date
+{
+  font-weight: bolder;
+  font-size: 25px;
+}
+
+#logo
+{
+  float: right;
+}
+
 #nurseryRhyme
 {
   font-style: italic;
   font-size: 30px;
   padding: 20px;
-}
-
-a
-{
-  opacity: 0.7;
-  transition: opacity 1s;
-}
-
-a:hover
-{
-  opacity: 1;
-  transition: opacity 1s;
 }

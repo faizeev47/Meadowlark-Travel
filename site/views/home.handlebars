@@ -1,13 +1,15 @@
-
-<header>
-  <img src="/img/logo.png" alt="Meadowlark Travel Logo">
-</header>
-<h1 class="display-1" style="text-align:center">Welcome to Meadowlark Travel!</h1>
-
-<div class="lead" style="text-align:right;">Today's date is {{today}}</div>
-{{> weather}}
+<div class="jumbotron">
+  <img src="/img/logo.png" alt="Meadowlark Travel Logo" id="logo">
+  <h1 class="display-3">Meadowlark Travel</h1>
+  <h4>Go on and go somewhere.</h4>
+</div>
 
 <p>Your fortune of the day:</p>
-<blockquote class="display-4">
+<blockquote>
   {{fortune}}
 </blockquote>
+
+<div class="lead" style="text-align:right;">
+  Today's date is <span id="date">{{today}}</span>
+</div>
+{{> weather}}

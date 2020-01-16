@@ -7,20 +7,15 @@ var nodemailer = require('nodemailer');
 
 var fortune = require('./lib/fortune.js');
 var weatherAPI = require('./lib/weather.js');
+var tours = require('./lib/tours.js');
 var credentials = require('./credentials.js');
 var cartValidation = require('./lib/cartValidation.js');
 
+var helpers = require('./lib/helpers.js');
+
 var app = express();
 
-var mailTransport = nodemailer.createTransport({
-  host: 'smtp.meadowlarktravel.com',
-  port: 465,
-  secure: false,
-  auth: {
-    user: 'username',
-    pass: 'password',
-  }
-});
+let transporter;
 
 app.disable('x-powered-by');
 
@@ -46,17 +41,32 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(require('cookie-parser')(credentials.cookieSecret));
 app.use(require('express-session')({
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  secret: credentials.cookieSecret
 }));
 app.use(express.static(__dirname + '/public'));
 app.use(logger('dev'));
+app.use(cartValidation.checkWaivers);
+app.use(cartValidation.checkGuestAccounts)
+app.use(async function(req,res,next) {
+  let testAccount = await nodemailer.createTestAccount();
 
+  transporter = nodemailer.createTransport({
+    host:'smtp.ethereal.email',
+    post: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass
+    }
+  });
+  next();
+})
 app.use(function(req, res, next) {
   res.locals.showTests = app.get('env') !== 'production' &&
     req.query.test === '1';
   next();
 });
-
 app.use(function(req, res, next) {
   if (!res.locals.partials) {
     res.locals.partials = {};
@@ -65,7 +75,6 @@ app.use(function(req, res, next) {
   res.locals.partials.weather = weatherData;
   next();
 });
-
 app.use(function(req, res, next) {
   res.locals.inputs = {};
   if (!(req.cookies.visitedBefore)) {
@@ -80,11 +89,7 @@ app.use(function(req, res, next) {
   res.locals.inputs.message = req.session.message;
   delete req.session.message;
   next();
-})
-
-app.use(cartValidation.checkWaivers);
-app.use(cartValidation.checkGuestAccounts)
-
+});
 app.use('/upload', function(req, res, next) {
   var now = Date.now();
   jqpupload.fileHandler({
@@ -103,32 +108,36 @@ app.get('/', function(req, res) {
   res.locals.inputs.today = today.getDate() + "/" + today.getMonth() + 1 + "/" + today.getFullYear();
   res.render('home', res.locals.inputs);
 });
-
 app.get('/about', function(req, res) {
   res.locals.inputs.pageTestScript = '/qa/tests-about.js';
   res.render('about', res.locals.inputs);
 });
 
-app.get('/tours', function(req, res) {
-  res.locals.inputs.currency = {
-    name: 'United States Dollar',
-    abbrev: 'USD'
-  };
-  res.locals.inputs.tours = [
-    { name: 'Hood River', price: '$99.95' },
-    { name: 'Oregon Coast', price: '$159.95' }
-  ];
-  res.locals.inputs.specialsUrl = '/january-specials';
-  res.locals.inputs.currencies = [ 'USD', 'GBP', 'BTC' ];
-  res.render('tours', res.locals.inputs);
-});
-
-app.get('/tours/hood-river', function(req, res) {
-  res.render('tours/hood-river');
-});
-
 app.get('/tours/request-group-rate', function(req, res) {
   res.render('tours/request-group-rate');
+});
+app.get('/tours/:tourName', function(req, res) {
+  res.render('tours/' + req.params.tourName, res.locals.inputs);
+});
+app.get('/tours', function(req, res) {
+  var val = tours.getToursInfo();
+  for (var key in val) {
+    res.locals.inputs[key] = val[key];
+  }
+  res.render('tours', res.locals.inputs);
+});
+app.post('/tours/:tourName', function(req, res) {
+  var tourName = req.params.tourName;
+  var bookings = parseInt(req.body.bookings) || 0;
+  if (bookings <= 0) {
+    req.session.flash = {
+      type: 'warning',
+      intro: 'Error: ',
+      message: 'Please make 1 or more than 1 bookings to add to cart!'
+    }
+    return res.redirect(tourName);
+  }
+  res.render('tours/' + tourName, res.locals.inputs);
 });
 
 app.get('/headers', function(req, res) {
@@ -143,7 +152,6 @@ app.get('/headers', function(req, res) {
 app.get('/nursery-rhyme', function(req, res) {
   res.render('nursery-rhyme');
 });
-
 app.get('/data/nursery-rhyme', function(req, res) {
   res.json({
     animal: 'squirrel',
@@ -156,18 +164,16 @@ app.get('/data/nursery-rhyme', function(req, res) {
 app.get('/newsletter/archive', function(req, res) {
   res.render('newsletter-archive', res.locals.inputs);
 });
-
 app.get('/newsletter', function(req, res) {
   res.locals.inputs.csrf = 'CSRF token goes here!';
   res.render('newsletter', res.locals.inputs);
 });
-
-app.post('/newsletter', function(req, res) {
-  var name = req.body.name || '', email = req.body.email || '';
+app.post('/newsletter', async function(req, res) {
+  var name = helpers.toFirstUpper(req.body.name) || '', email = req.body.email || '';
   if (name == '' || email == '') {
     req.session.flash = {
       type: 'info',
-      intro: 'Validation error: ',
+      intro: 'Error: ',
       message: 'Please enter your name and email!'
     };
     return res.redirect(303, '/newsletter');
@@ -175,24 +181,27 @@ app.post('/newsletter', function(req, res) {
   if (!email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
     req.session.flash = {
       type: 'danger',
-      intro: 'Validation error: ',
+      intro: 'Error: ',
       message: 'You have entered an invalid email address!'
     };
     return res.redirect(303, '/newsletter');
   }
 
-  mailTransport.sendMail({
+  let info = await transporter.sendMail({
     from: '"MeadowlarkTravel" <info@meadowlarktravel.com>',
-    to: email,
+    to: '"' + name + '"' + '<' + email + '>',
     subject: 'Newsletter Subscription at MeadowLark Travel!',
     text: 'Thank you for subscribing to our newsletter. ' +
-          'To unsubscibe'
-  })
+          '\nTo unsubscibe, you can\'t really do anything' +
+          'at this point'
+  });
+  console.log("Message sent: %s", info.messageId);
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
   req.session.flash = {
     type: 'success',
     intro: 'Success: ',
-    message: 'You have made it!'
+    message: 'Subscription successful!'
   };
 
   return res.redirect(303, '/newsletter/archive');
@@ -208,7 +217,6 @@ app.get('/contest/vacation-photo', function(req, res) {
   res.locals.inputs.month = now.getMonth();
   res.render('contest/vacation-photo', res.locals.items);
 });
-
 app.post('/contest/vacation-photo/:year/:month', function(req, res) {
   var form = formidable.IncomingForm();
   form.parse(req, function(err, fields, files) {
@@ -223,7 +231,6 @@ app.post('/contest/vacation-photo/:year/:month', function(req, res) {
     res.redirect(303, "/thank-you");
   });
 });
-
 
 // custom 404 page
 app.use(function(req, res) {

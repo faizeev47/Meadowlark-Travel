@@ -1,31 +1,53 @@
-<h1>Tours:</h1>
-<ul>
-  {{#each tours}}
-    {{! A new block with a changed context}}
-    <li>
-      {{name}} - {{price}}
-      {{#if ../currencies}}
-        ({{../../currency.abbrev}})
-      {{/if}}
-    </li>
-  {{/each}}
-</ul>
+{{#if tours}}
+  <h1 class="centered">Tours</h1>
+  <hr>
+  <p class="lead centered text-muted">Click on a tour to make a booking:</p>
+  <div class="card-deck">
+    {{#each tours}}
+      <a href="/tours/{{route}}">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="tour-card-title card-title">{{name}}</h3>
+            <h4 class="card-text">
+              <span class="tour-card-price">
+                {{price}}
+              </span>
+              {{#if ../currencies}}
+                ({{../../currency.abbrev}})
+              {{/if}}
+            </h4>
+            <p class="card-text">
+              <small class="text-muted">Last booked 3 mins ago</small>
+            </p>
+          </div>
+        </div>
+      </a>
+    {{/each}}
+  </div>
 
-{{#unless currencies}}
-  <p>All prices in {{currency.name}}</p>
-{{/unless}}
+  <div>
+    {{#unless currencies}}
+      <p>All prices in {{currency.name}}</p>
+    {{/unless}}
+  </div>
+  <div>
+    {{#if specialsUrl}}
+      {{! A new block with an almost unchanged context}}
+      <p>Check out our <a href="{{specialsUrl}}">specials!</a></p>
+    {{else}}
+      <p>Please check back often for specials.</p>
+    {{/if}}
+  </div>
 
-{{#if specialsUrl}}
-  {{! A new block with an almost unchanged context}}
-  <p>Check out our <a href="{{specialsUrl}}">specials!</a></p>
+  <div>
+    <p>
+      {{#each currencies}}
+        <a href="#" class="currency">{{.}}</a>
+      {{else}}
+        Unfortunately, we currently only accept {{currency.name}}.
+      {{/each}}
+    </p>
+  </div>
 {{else}}
-  <p>Please check back often for specials.</p>
+  <h2>Sorry! No tours for now. Check back again later.</h2>
 {{/if}}
-
-<p>
-  {{#each currencies}}
-    <a href="#" class="currency">{{.}}</a>
-  {{else}}
-    Unfortunately, we currently only accept {{currency.name}}.
-  {{/each}}
-</p>
